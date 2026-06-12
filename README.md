@@ -123,18 +123,18 @@ npx wrangler d1 migrations apply treedo --remote
 npx wrangler d1 execute treedo --remote --file db/seed.sql
 ```
 
-### Deploy to Cloudflare Pages
+### Deploy to Cloudflare
+
+**Via GitHub (CI/CD):**
+1. Fork the repo
+2. Set `CLOUDFLARE_API_TOKEN` as a repository secret
+3. Push to the main branch
 
 **Direct Deploy:**
 ```bash
 npm run build
-npx wrangler pages deploy dist/client
+npx wrangler deploy
 ```
-
-> The build script automatically copies the SSR worker into `dist/client/_worker.js` so Pages serves both static assets and dynamic routes.
-
-Make sure D1 database bindings are configured in your Cloudflare Pages dashboard:  
-`Settings → Functions → D1 database bindings → Add binding (variable name: DB, database: treedo)`
 
 ### Environment Variables
 
