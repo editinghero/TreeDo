@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "viewport",
           content: "width=device-width, initial-scale=1, viewport-fit=cover",
         },
-        { title: "FarmFocus" },
+        { title: "TreeDo" },
         {
           name: "description",
           content:
@@ -89,10 +89,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "apple-mobile-web-app-capable", content: "yes" },
         { name: "mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-        { name: "apple-mobile-web-app-title", content: "FarmFocus" },
+        { name: "apple-mobile-web-app-title", content: "TreeDo" },
         {
           property: "og:title",
-          content: "FarmFocus — Plant focus, grow rewards",
+          content: "TreeDo — Plant focus, grow rewards",
         },
         {
           property: "og:description",
@@ -144,7 +144,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  // Register service worker (production only; never inside iframes / Lovable previews)
   if (typeof window !== "undefined" && "serviceWorker" in navigator) {
     const inIframe = (() => {
       try {
@@ -153,19 +152,17 @@ function RootComponent() {
         return true;
       }
     })();
-    const isPreview =
-      window.location.hostname.includes("lovable") ||
-      window.location.hostname.includes("lovableproject.com") ||
+    const isLocal =
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1";
-    if (inIframe || isPreview) {
+    if (inIframe || isLocal) {
       navigator.serviceWorker
         .getRegistrations?.()
         .then((rs) => rs.forEach((r) => r.unregister()));
     } else if (
-      !(window as Window & { __ff_sw_registered?: boolean }).__ff_sw_registered
+      !(window as Window & { __td_sw_registered?: boolean }).__td_sw_registered
     ) {
-      (window as Window & { __ff_sw_registered?: boolean }).__ff_sw_registered =
+      (window as Window & { __td_sw_registered?: boolean }).__td_sw_registered =
         true;
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").catch(() => {});

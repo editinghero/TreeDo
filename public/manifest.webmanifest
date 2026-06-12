@@ -1,6 +1,6 @@
 {
-  "name": "FarmFocus — Plant focus, grow rewards",
-  "short_name": "FarmFocus",
+  "name": "TreeDo — Plant focus, grow rewards",
+  "short_name": "TreeDo",
   "description": "ADHD-friendly task & focus timer with a tiny pixel-pretty farm.",
   "start_url": "/",
   "scope": "/",
@@ -11,22 +11,22 @@
   "categories": ["productivity", "lifestyle", "games"],
   "icons": [
     {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }

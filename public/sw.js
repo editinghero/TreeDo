@@ -1,12 +1,11 @@
-/* FarmFocus service worker — cache-first for static assets, network-first for HTML.
-   Safe in production; the registration in src/main.ts disables it inside iframes
-   and on Lovable preview hosts. */
-const VERSION = "ff-v1";
+/* TreeDo service worker — cache-first for static assets, network-first for HTML. */
+const VERSION = "td-v1";
 const STATIC_CACHE = `${VERSION}-static`;
 const HTML_CACHE = `${VERSION}-html`;
 const PRECACHE = [
   "/",
   "/manifest.webmanifest",
+  "/logo.svg",
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png",

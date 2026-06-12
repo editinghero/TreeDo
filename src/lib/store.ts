@@ -366,7 +366,7 @@ export const useFarm = create<FarmState>()(
         } else set({ streak: 1, lastActiveDay: t });
       },
     }),
-    { name: "farmfocus-v2" },
+    { name: "treedo-v2" },
   ),
 );
 

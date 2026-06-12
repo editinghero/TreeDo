@@ -57,7 +57,7 @@ export function Marketplace({ onPlanted }: { onPlanted?: () => void }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {SEEDS.map((s, i) => {
           const afford = xp >= s.cost;
           const minutes = Math.round(s.growMs / 60000);

@@ -1,5 +1,4 @@
--- 0001_init — initial FarmFocus schema. Mirrors db/schema.sql.
--- Apply with: wrangler d1 migrations apply farmfocus --remote
+-- 0001_init — initial TreeDo schema. Mirrors db/schema.sql (schema only, seed is inline there).
 
 PRAGMA foreign_keys = ON;
 

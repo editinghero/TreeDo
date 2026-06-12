@@ -18,7 +18,7 @@ import { haptics } from "@/lib/haptics";
 export const Route = createFileRoute("/app")({
   head: () => ({
     meta: [
-      { title: "FarmFocus — Your Garden" },
+      { title: "TreeDo — Your Garden" },
       { name: "description", content: "Plant focus, grow rewards." },
     ],
   }),
@@ -53,7 +53,7 @@ function AppPage() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto min-h-[100dvh] w-full max-w-7xl px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+92px)] sm:px-6 sm:py-10 lg:pb-10">
+    <div className="mx-auto min-h-[100dvh] w-full max-w-screen-2xl px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+92px)] sm:px-6 sm:py-10 lg:pb-10">
       <div className="relative isolate z-0">
         <HeroHeader />
       </div>
@@ -127,9 +127,9 @@ function AppPage() {
             {tab === "farm" && (
               <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1.4fr_1fr]">
                 <Farm />
-                <aside className="hidden lg:block">
-                  <CoinShop />
-                </aside>
+                <div>
+                  <Marketplace onPlanted={() => {}} />
+                </div>
               </div>
             )}
 

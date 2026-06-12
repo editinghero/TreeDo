@@ -81,7 +81,7 @@ export function Farm() {
       />
 
       {decorItems.length > 0 && (
-        <div className="pointer-events-none absolute inset-0">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {decorItems.map((d, i) => (
             <motion.div
               key={d.id}
@@ -91,7 +91,7 @@ export function Farm() {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="absolute drop-shadow-md"
+              className="absolute drop-shadow-md hidden sm:block"
               style={{
                 left: `${10 + ((i * 13) % 80)}%`,
                 top: `${8 + ((i * 17) % 30)}%`,
@@ -104,7 +104,7 @@ export function Farm() {
         </div>
       )}
 
-      <div className="relative mb-4 flex items-baseline justify-between">
+      <div className="relative z-10 mb-4 flex items-baseline justify-between gap-2">
         <h2 className="font-handwriting text-3xl font-bold leading-none">
           Your Farm
         </h2>
@@ -115,7 +115,7 @@ export function Farm() {
         </span>
       </div>
 
-      <div className="relative grid grid-cols-4 gap-2 sm:gap-3">
+      <div className="relative z-10 grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
         {plots.map((p) => {
           if (!p.unlocked) {
             return (

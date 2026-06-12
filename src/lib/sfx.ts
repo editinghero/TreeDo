@@ -1,10 +1,10 @@
 // Very subtle WebAudio sound effects. No assets, tiny gain (~0.04-0.06).
-// Toggle via localStorage["farmfocus-sfx"] = "off".
+// Toggle via localStorage["treedo-sfx"] = "off".
 
 let ctx: AudioContext | null = null;
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
-  if (localStorage.getItem("farmfocus-sfx") === "off") return null;
+  if (localStorage.getItem("treedo-sfx") === "off") return null;
   if (!ctx) {
     try {
       const AC =
@@ -77,9 +77,9 @@ export const sfx = {
 
 export function setSfxEnabled(on: boolean) {
   if (typeof window === "undefined") return;
-  localStorage.setItem("farmfocus-sfx", on ? "on" : "off");
+  localStorage.setItem("treedo-sfx", on ? "on" : "off");
 }
 export function isSfxEnabled(): boolean {
   if (typeof window === "undefined") return true;
-  return localStorage.getItem("farmfocus-sfx") !== "off";
+  return localStorage.getItem("treedo-sfx") !== "off";
 }

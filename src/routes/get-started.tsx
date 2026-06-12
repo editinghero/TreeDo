@@ -10,12 +10,12 @@ import { Logo } from "@/components/Logo";
 export const Route = createFileRoute("/get-started")({
   head: () => ({
     meta: [
-      { title: "Get started — FarmFocus" },
+      { title: "Get started — TreeDo" },
       {
         name: "description",
         content: "Create your tiny garden. Stored only on your device.",
       },
-      { property: "og:title", content: "Get started with FarmFocus" },
+      { property: "og:title", content: "Get started with TreeDo" },
       {
         property: "og:description",
         content: "Sign up or log in to start planting focus.",
@@ -68,7 +68,7 @@ function GetStartedPage() {
           className="inline-flex items-center gap-2"
         >
           <Logo className="h-9 w-9" />
-          <span className="font-handwriting text-2xl font-bold">FarmFocus</span>
+          <span className="font-handwriting text-2xl font-bold">TreeDo</span>
         </Link>
         <Link
           to="/"

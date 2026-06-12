@@ -103,7 +103,7 @@ export function CoinShop() {
       </div>
 
       {/* category tabs */}
-      <div className="relative mt-4 flex gap-1 rounded-full border-2 border-foreground/10 bg-background/70 p-1">
+      <div className="relative mt-4 flex gap-1 overflow-x-auto no-scrollbar rounded-full border-2 border-foreground/10 bg-background/70 p-1">
         {CATS.map((c) => {
           const Icon = c.icon;
           const active = cat === c.id;
@@ -111,7 +111,7 @@ export function CoinShop() {
             <button
               key={c.id}
               onClick={() => setCat(c.id)}
-              className={`relative flex-1 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+              className={`relative shrink-0 flex-1 min-w-[60px] rounded-full px-2 py-1.5 text-xs font-bold transition ${
                 active
                   ? "text-primary-foreground"
                   : "text-foreground/60 hover:text-foreground"

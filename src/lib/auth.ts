@@ -1,8 +1,8 @@
 // Tiny localStorage-only auth. No real security — local profile only.
 import { create } from "zustand";
 
-const KEY = "farmfocus-auth";
-const USERS_KEY = "farmfocus-users";
+const KEY = "treedo-auth";
+const USERS_KEY = "treedo-users";
 
 export type AuthUser = { name: string; email: string };
 

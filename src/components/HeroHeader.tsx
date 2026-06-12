@@ -162,7 +162,7 @@ export function HeroHeader() {
           </span>
           <span className="min-w-0 text-left">
             <span className="block truncate font-handwriting text-2xl font-bold leading-none">
-              {user ? `hi, ${user.name.split(" ")[0]}` : "FarmFocus"}
+              {user ? `hi, ${user.name.split(" ")[0]}` : "TreeDo"}
             </span>
             <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Lv {level} · {xp} XP
@@ -216,7 +216,7 @@ export function HeroHeader() {
             </div>
           )}
 
-          <div className="relative grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="relative grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
             <Stat
               icon={<Trophy className="h-4 w-4" />}
               label="Level"

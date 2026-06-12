@@ -1,4 +1,4 @@
--- FarmFocus — Cloudflare D1 schema (SQLite dialect)
+-- TreeDo — Cloudflare D1 schema (SQLite dialect)
 -- Idempotent. Safe to re-run.
 
 PRAGMA foreign_keys = ON;
@@ -81,3 +81,15 @@ CREATE TABLE IF NOT EXISTS focus_sessions (
   ended_at    INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_focus_user ON focus_sessions(user_id, ended_at DESC);
+
+-- Sample seed data
+INSERT OR IGNORE INTO users (id, name, email, pass_hash, created_at) VALUES
+  ('u_demo', 'Demo Maya', 'demo@treedo.app', 'dev-only-not-a-real-hash', 0);
+
+INSERT OR IGNORE INTO progress (user_id, xp, coins, level, total_focused_min, tasks_completed, harvested, streak, last_active_day, freeze_available, updated_at)
+VALUES ('u_demo', 120, 80, 2, 45, 12, 3, 4, '2026-05-16', 1, 0);
+
+INSERT OR IGNORE INTO tasks (id, user_id, title, difficulty, done, created_at) VALUES
+  ('t1', 'u_demo', 'water the basil', 'easy',   0, 0),
+  ('t2', 'u_demo', 'finish design draft', 'medium', 0, 0),
+  ('t3', 'u_demo', 'ship marketing email', 'hard', 1, 0);

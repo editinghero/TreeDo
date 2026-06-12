@@ -36,7 +36,7 @@ gsap.registerPlugin(ScrollTrigger);
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FarmFocus — Plant focus, grow rewards" },
+      { title: "TreeDo — Plant focus, grow rewards" },
       {
         name: "description",
         content:
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:title",
-        content: "FarmFocus — Plant focus, grow rewards",
+        content: "TreeDo — Plant focus, grow rewards",
       },
       {
         property: "og:description",
@@ -165,7 +165,7 @@ function Landing() {
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-6">
         <div className="flex items-center gap-2">
           <Logo className="h-10 w-10 drop-shadow-sm" />
-          <span className="font-handwriting text-2xl font-bold">FarmFocus</span>
+          <span className="font-handwriting text-2xl font-bold">TreeDo</span>
         </div>
         <Link
           to="/get-started"
@@ -546,7 +546,7 @@ function Landing() {
         <footer className="mt-14 flex flex-col items-center gap-2 text-center text-xs font-bold text-muted-foreground">
           <div className="inline-flex items-center gap-2">
             <Logo className="h-5 w-5" />
-            FarmFocus · made with care
+            TreeDo · made with care
           </div>
           <a
             href="https://github.com/editinghero"
