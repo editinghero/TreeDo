@@ -1,0 +1,355 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;700&family=Patrick+Hand&display=swap");
+@import "tailwindcss" source(none);
+@import "tw-animate-css";
+@source "../src";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-display: "Fredoka", system-ui, sans-serif;
+  --font-sans: "Nunito", system-ui, sans-serif;
+  --font-handwriting: "Caveat", "Patrick Hand", cursive;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 14px);
+  --radius-3xl: calc(var(--radius) + 22px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sun: var(--sun);
+  --color-sun-foreground: var(--sun-foreground);
+  --color-leaf: var(--leaf);
+  --color-leaf-foreground: var(--leaf-foreground);
+  --color-sky: var(--sky);
+  --color-sky-foreground: var(--sky-foreground);
+  --color-berry: var(--berry);
+  --color-berry-foreground: var(--berry-foreground);
+  --color-soil: var(--soil);
+  --color-soil-foreground: var(--soil-foreground);
+  --color-cream: var(--cream);
+
+  --shadow-toy: 0 6px 0 0 var(--shadow-toy-color);
+  --shadow-pop: 0 10px 30px -10px
+    color-mix(in oklab, var(--berry) 40%, transparent);
+}
+
+:root {
+  --radius: 1rem;
+
+  /* Sky-cream background, warm playful palette */
+  --background: oklch(0.97 0.03 90);
+  --foreground: oklch(0.28 0.05 50);
+
+  --card: oklch(0.995 0.01 90);
+  --card-foreground: oklch(0.28 0.05 50);
+  --popover: oklch(0.995 0.01 90);
+  --popover-foreground: oklch(0.28 0.05 50);
+
+  --primary: oklch(0.78 0.18 70); /* sunflower orange */
+  --primary-foreground: oklch(0.22 0.05 50);
+
+  --secondary: oklch(0.93 0.06 95); /* soft cream */
+  --secondary-foreground: oklch(0.32 0.06 50);
+
+  --muted: oklch(0.95 0.02 90);
+  --muted-foreground: oklch(0.5 0.04 60);
+
+  --accent: oklch(0.85 0.16 165); /* mint leaf */
+  --accent-foreground: oklch(0.22 0.06 160);
+
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.88 0.04 80);
+  --input: oklch(0.92 0.03 80);
+  --ring: oklch(0.78 0.18 70);
+
+  /* Custom farm tokens */
+  --sun: oklch(0.88 0.18 95);
+  --sun-foreground: oklch(0.28 0.08 60);
+  --leaf: oklch(0.72 0.18 150);
+  --leaf-foreground: oklch(0.99 0 0);
+  --sky: oklch(0.85 0.1 220);
+  --sky-foreground: oklch(0.25 0.08 240);
+  --berry: oklch(0.68 0.22 12);
+  --berry-foreground: oklch(0.99 0 0);
+  --soil: oklch(0.45 0.08 50);
+  --soil-foreground: oklch(0.98 0.02 80);
+  --cream: oklch(0.97 0.04 90);
+
+  --shadow-toy-color: oklch(0.45 0.08 50 / 0.35);
+
+  --gradient-sky: linear-gradient(
+    180deg,
+    oklch(0.92 0.06 220),
+    oklch(0.97 0.04 90)
+  );
+  --gradient-sun: linear-gradient(
+    135deg,
+    oklch(0.88 0.18 95),
+    oklch(0.78 0.18 50)
+  );
+  --gradient-leaf: linear-gradient(
+    135deg,
+    oklch(0.82 0.16 160),
+    oklch(0.65 0.2 145)
+  );
+  --gradient-berry: linear-gradient(
+    135deg,
+    oklch(0.78 0.2 350),
+    oklch(0.65 0.24 15)
+  );
+}
+
+.dark {
+  --background: oklch(0.2 0.04 250);
+  --foreground: oklch(0.96 0.02 90);
+  --card: oklch(0.26 0.05 250);
+  --card-foreground: oklch(0.96 0.02 90);
+  --popover: oklch(0.26 0.05 250);
+  --popover-foreground: oklch(0.96 0.02 90);
+  --primary: oklch(0.82 0.18 75);
+  --primary-foreground: oklch(0.2 0.05 50);
+  --secondary: oklch(0.32 0.05 250);
+  --secondary-foreground: oklch(0.96 0.02 90);
+  --muted: oklch(0.3 0.04 250);
+  --muted-foreground: oklch(0.75 0.03 90);
+  --accent: oklch(0.75 0.18 165);
+  --accent-foreground: oklch(0.18 0.05 160);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.35 0.04 250);
+  --input: oklch(0.32 0.04 250);
+  --ring: oklch(0.82 0.18 75);
+  --shadow-toy-color: oklch(0.1 0.04 250 / 0.6);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    min-height: 100dvh;
+  }
+  body {
+    background:
+      radial-gradient(
+        1200px 600px at 10% -10%,
+        color-mix(in oklab, var(--sky) 60%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at 110% 10%,
+        color-mix(in oklab, var(--sun) 50%, transparent),
+        transparent 60%
+      ),
+      var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+
+  /* Toasts must sit above the bottom nav */
+  [data-sonner-toaster] {
+    z-index: 60 !important;
+  }
+
+  /* No weird blue selection — let inputs/textareas keep it though */
+  html,
+  body,
+  button,
+  a,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  li,
+  label {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+    color: var(--foreground);
+  }
+
+  /* Subtle, non-vibrant scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent)
+      transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--foreground) 18%, transparent);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--foreground) 28%, transparent);
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-handwriting {
+    font-family: var(--font-handwriting);
+  }
+  .paper-grid {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--foreground) 8%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--foreground) 8%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 22px 22px;
+  }
+  .toy-shadow {
+    box-shadow: var(--shadow-toy);
+  }
+  .bg-gradient-sun {
+    background: var(--gradient-sun);
+  }
+  .bg-gradient-leaf {
+    background: var(--gradient-leaf);
+  }
+  .bg-gradient-berry {
+    background: var(--gradient-berry);
+  }
+  .bg-gradient-sky {
+    background: var(--gradient-sky);
+  }
+
+  /* Hide scrollbar entirely (used for tab strips) */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  /* Safe-area padding for bottom nav on iOS */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+  .mb-safe {
+    margin-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(-2deg);
+    }
+    50% {
+      transform: rotate(2deg);
+    }
+  }
+  .animate-wiggle {
+    animation: wiggle 0.6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes pop {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  .animate-pop {
+    animation: pop 0.4s ease-out;
+  }
+}
