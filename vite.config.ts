@@ -11,6 +11,5 @@ export default defineConfig({
     tsConfigPaths(),
     tanstackStart({ server: { entry: "server" } }),
     react(),
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
   ],
 });
