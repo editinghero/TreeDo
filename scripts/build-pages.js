@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const srcWorker = path.resolve("dist/server/index.js");
+const srcWorker = path.resolve("dist/server/server.js");
 const destWorker = path.resolve("dist/client/_worker.js");
 const srcAssets = path.resolve("dist/server/assets");
 const destAssets = path.resolve("dist/client/assets");
