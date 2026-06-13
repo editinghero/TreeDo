@@ -40,12 +40,12 @@ if (fs.existsSync(srcAssets)) {
   console.log(`✓ Copied ${files.length} server assets to dist/client/assets`);
 }
 
-// Create a Pages-compatible wrangler.json
+// Create a Pages-compatible wrangler.json WITHOUT pages_build_output_dir
+// (that field is only for the root config, not the deployed one)
 const wranglerConfig = {
   name: "tanstack-start-app",
   compatibility_date: "2025-09-24",
   compatibility_flags: ["nodejs_compat"],
-  pages_build_output_dir: "dist/client",
   d1_databases: [
     {
       binding: "DB",
