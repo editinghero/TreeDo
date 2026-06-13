@@ -34,4 +34,12 @@ if (fs.existsSync(srcAssets)) {
   process.exit(1);
 }
 
+// Remove the auto-generated wrangler.json from dist/client
+// Cloudflare Pages should use the root wrangler.jsonc instead
+const clientWranglerJson = path.resolve("dist/client/wrangler.json");
+if (fs.existsSync(clientWranglerJson)) {
+  fs.unlinkSync(clientWranglerJson);
+  console.log(`✓ Removed incompatible wrangler.json from dist/client`);
+}
+
 console.log("✓ Pages package completed successfully in dist/client!");
