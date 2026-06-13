@@ -15,12 +15,19 @@ if (fs.existsSync(srcAssets)) {
   console.log(`✓ Copied ${files.length} server assets to dist/client/assets`);
 }
 
-// Copy the server.js as the worker entry point
-const srcWorker = path.resolve("dist/server/server.js");
-const destWorker = path.resolve("dist/client/_worker.js");
+// Copy server.js to dist/client (so assets can import from ../server.js)
+const srcServer = path.resolve("dist/server/server.js");
+const destServer = path.resolve("dist/client/server.js");
 
-if (fs.existsSync(srcWorker)) {
-  fs.copyFileSync(srcWorker, destWorker);
+if (fs.existsSync(srcServer)) {
+  fs.copyFileSync(srcServer, destServer);
+  console.log("✓ Copied server.js to dist/client");
+}
+
+// ALSO copy as _worker.js for Cloudflare Pages entry point
+const destWorker = path.resolve("dist/client/_worker.js");
+if (fs.existsSync(srcServer)) {
+  fs.copyFileSync(srcServer, destWorker);
   console.log("✓ Copied server.js as _worker.js");
 }
 
