@@ -2,6 +2,8 @@
 
 ADHD-friendly task & focus timer with a playful pixel-farm reward system. Complete tasks, stay focused, and watch your garden grow.
 
+Live - https://treedo.pages.dev
+
 ## Features
 
 - **Tasks** — Quick to-do with easy/medium/hard difficulty and weekly planning view

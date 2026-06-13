@@ -82,6 +82,21 @@ async function normalizeCatastrophicSsrResponse(
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // If running on Cloudflare Pages, attempt to serve static assets first
+      if (request.method === "GET" || request.method === "HEAD") {
+        if (env && typeof env === "object" && "ASSETS" in env) {
+          const assets = (env as { ASSETS: { fetch: typeof fetch } }).ASSETS;
+          try {
+            const assetResponse = await assets.fetch(request.clone());
+            if (assetResponse.status !== 404) {
+              return assetResponse;
+            }
+          } catch (error) {
+            // Fall through to SSR
+          }
+        }
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
