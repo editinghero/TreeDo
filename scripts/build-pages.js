@@ -42,4 +42,11 @@ if (fs.existsSync(clientWranglerJson)) {
   console.log(`✓ Removed incompatible wrangler.json from dist/client`);
 }
 
+// Remove the deploy config cache that points to the deleted wrangler.json
+const deployConfigPath = path.resolve(".wrangler/deploy/config.json");
+if (fs.existsSync(deployConfigPath)) {
+  fs.unlinkSync(deployConfigPath);
+  console.log(`✓ Removed stale deploy config cache`);
+}
+
 console.log("✓ Pages package completed successfully in dist/client!");
