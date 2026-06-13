@@ -1,17 +1,30 @@
 import fs from "node:fs";
 import path from "node:path";
 
-// Copy the worker entry from the Cloudflare plugin output
-const srcWorker = path.resolve("dist/tanstack_start_app/index.js");
-const destWorker = path.resolve("dist/client/_worker.js");
+// Try to find the worker entry - Cloudflare plugin can output to different locations
+const possibleWorkerPaths = [
+  "dist/tanstack_start_app/index.js",  // Local build
+  "dist/server/server.js",              // CI build
+];
 
-if (fs.existsSync(srcWorker)) {
-  fs.copyFileSync(srcWorker, destWorker);
-  console.log("✓ Copied worker entry to dist/client/_worker.js");
-} else {
-  console.error(`Error: Worker not found at ${srcWorker}`);
+let srcWorker = null;
+for (const workerPath of possibleWorkerPaths) {
+  const fullPath = path.resolve(workerPath);
+  if (fs.existsSync(fullPath)) {
+    srcWorker = fullPath;
+    break;
+  }
+}
+
+if (!srcWorker) {
+  console.error("Error: Worker not found at any expected location:");
+  possibleWorkerPaths.forEach(p => console.error(`  - ${p}`));
   process.exit(1);
 }
+
+const destWorker = path.resolve("dist/client/_worker.js");
+fs.copyFileSync(srcWorker, destWorker);
+console.log(`✓ Copied worker entry from ${path.basename(path.dirname(srcWorker))}/${path.basename(srcWorker)} to dist/client/_worker.js`);
 
 // Copy server assets to client/assets for the worker to access
 const srcAssets = path.resolve("dist/server/assets");
