@@ -4,6 +4,8 @@ ADHD-friendly task & focus timer with a playful pixel-farm reward system. Comple
 
 Live - https://treedo.pages.dev
 
+`Currently only web version trying to make a native app with same ui to timmer function really works and will add db`
+
 ## Features
 
 - **Tasks** — Quick to-do with easy/medium/hard difficulty and weekly planning view
