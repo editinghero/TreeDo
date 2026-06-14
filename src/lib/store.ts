@@ -1,14 +1,17 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { SEEDS, seedById } from "./seeds";
-import { BOOSTERS, PETS, DECOR, TOOLS, type Booster, type Pet } from "./shop";
+import { BOOSTERS, PETS, DECOR, TOOLS } from "./shop";
+import {
+  getStoreStateServerFn,
+  updateProgressServerFn,
+  saveTaskServerFn,
+  removeTaskServerFn,
+  updatePlotServerFn,
+  addInventoryServerFn,
+  saveFocusSessionServerFn,
+} from "../server/db-actions";
 
 export type Difficulty = "easy" | "medium" | "hard";
-export const DIFFICULTY_XP: Record<Difficulty, number> = {
-  easy: 3,
-  medium: 6,
-  hard: 12,
-};
 
 export type Task = {
   id: string;
@@ -16,8 +19,14 @@ export type Task = {
   difficulty: Difficulty;
   done: boolean;
   createdAt: number;
-  day?: string; // optional day for weekly planner: "mon".."sun"
+  completedAt?: number;
+  day?: string;
 };
+
+export type ActiveBoost = {
+  kind: "xp2x";
+  until: number;
+} | null;
 
 export type Plot = {
   id: number;
@@ -27,7 +36,11 @@ export type Plot = {
   unlockCost: number;
 };
 
-export type ActiveBoost = { kind: Booster["kind"]; until: number } | null;
+export const DIFFICULTY_XP: Record<Difficulty, number> = {
+  easy: 10,
+  medium: 25,
+  hard: 50,
+};
 
 type FarmState = {
   xp: number;
@@ -46,33 +59,37 @@ type FarmState = {
   activeBoost: ActiveBoost;
 
   streak: number;
-  lastActiveDay: string | null; // YYYY-MM-DD
+  lastActiveDay: string | null;
   freezeAvailable: number;
 
-  addTask: (title: string, difficulty: Difficulty, day?: string) => void;
-  toggleTask: (id: string) => { gained: number } | void;
-  removeTask: (id: string) => void;
+  hydrate: () => Promise<void>;
 
-  awardFocusXp: (minutes: number) => void;
+  addTask: (
+    title: string,
+    difficulty: Difficulty,
+    day?: string,
+  ) => Promise<void>;
+  toggleTask: (id: string) => Promise<{ gained: number } | void>;
+  removeTask: (id: string) => Promise<void>;
 
-  buyAndPlant: (plotId: number, seedId: string) => boolean;
-  harvest: (plotId: number) => number;
-  autoHarvestRipe: () => number;
-  unlockPlot: (plotId: number) => boolean;
+  awardFocusXp: (minutes: number) => Promise<void>;
 
-  buyBooster: (id: string) => boolean;
-  useFertilizer: () => boolean;
-  buyPet: (id: string) => boolean;
-  setActivePet: (id: string | null) => void;
-  buyDecor: (id: string) => boolean;
-  buyTool: (id: string) => boolean;
+  buyAndPlant: (plotId: number, seedId: string) => Promise<boolean>;
+  harvest: (plotId: number) => Promise<number>;
+  autoHarvestRipe: () => Promise<number>;
+  unlockPlot: (plotId: number) => Promise<boolean>;
 
-  /** Returns the effective grow time in ms for a base value, applying owned tool perks. */
+  buyBooster: (id: string) => Promise<boolean>;
+  useFertilizer: () => Promise<boolean>;
+  buyPet: (id: string) => Promise<boolean>;
+  setActivePet: (id: string | null) => Promise<void>;
+  buyDecor: (id: string) => Promise<boolean>;
+  buyTool: (id: string) => Promise<boolean>;
+
   effectiveGrowMs: (baseMs: number) => number;
-  /** Returns the effective harvest reward applying owned tool perks. */
   effectiveReward: (baseReward: number) => number;
 
-  touchStreak: () => void;
+  touchStreak: () => Promise<void>;
 };
 
 const INITIAL_PLOTS: Plot[] = Array.from({ length: 16 }, (_, i) => ({
@@ -87,287 +104,403 @@ const xpToLevel = (xp: number) => Math.floor(Math.sqrt(xp / 25)) + 1;
 const today = () => new Date().toISOString().slice(0, 10);
 const isBoostActive = (b: ActiveBoost) => !!b && b.until > Date.now();
 
-export const useFarm = create<FarmState>()(
-  persist(
-    (set, get) => ({
-      xp: 0,
-      coins: 0,
-      level: 1,
-      totalFocusedMin: 0,
-      tasksCompleted: 0,
-      harvested: 0,
-      tasks: [],
-      plots: INITIAL_PLOTS,
+export const useFarm = create<FarmState>((set, get) => ({
+  xp: 0,
+  coins: 0,
+  level: 1,
+  totalFocusedMin: 0,
+  tasksCompleted: 0,
+  harvested: 0,
+  tasks: [],
+  plots: INITIAL_PLOTS,
 
-      ownedPets: [],
-      activePet: null,
-      ownedDecor: [],
-      ownedTools: [],
-      activeBoost: null,
+  ownedPets: [],
+  activePet: null,
+  ownedDecor: [],
+  ownedTools: [],
+  activeBoost: null,
 
-      streak: 0,
-      lastActiveDay: null,
-      freezeAvailable: 0,
+  streak: 0,
+  lastActiveDay: null,
+  freezeAvailable: 0,
 
-      addTask: (title, difficulty, day) => {
-        const task: Task = {
-          id: crypto.randomUUID(),
-          title: title.trim(),
-          difficulty,
-          done: false,
-          createdAt: Date.now(),
-          day,
-        };
-        set({ tasks: [task, ...get().tasks] });
+  hydrate: async () => {
+    try {
+      const res = await getStoreStateServerFn();
+      if (res.ok && res.state) {
+        set({ ...res.state });
+      }
+    } catch (e) {
+      console.error("Failed to hydrate farm state", e);
+    }
+  },
+
+  addTask: async (title, difficulty, day) => {
+    const task: Task = {
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      difficulty,
+      done: false,
+      createdAt: Date.now(),
+      day,
+    };
+    set({ tasks: [task, ...get().tasks] });
+    await saveTaskServerFn({ data: task }).catch(() => {});
+  },
+
+  toggleTask: async (id) => {
+    const t = get().tasks.find((t) => t.id === id);
+    if (!t) return;
+
+    if (!t.done) {
+      let gained = DIFFICULTY_XP[t.difficulty];
+      const s = get();
+      if (s.activePet === "hopper") gained = Math.round(gained * 1.1);
+      if (isBoostActive(s.activeBoost) && s.activeBoost!.kind === "xp2x")
+        gained *= 2;
+
+      const newXp = s.xp + gained;
+      const level = xpToLevel(newXp);
+      const tasksCompleted = s.tasksCompleted + 1;
+
+      const updatedTask = { ...t, done: true, completedAt: Date.now() };
+
+      set({
+        tasks: s.tasks.map((x) => (x.id === id ? updatedTask : x)),
+        xp: newXp,
+        level,
+        tasksCompleted,
+      });
+
+      saveTaskServerFn({ data: updatedTask }).catch(() => {});
+      updateProgressServerFn({
+        data: { xp: newXp, level, tasksCompleted },
+      }).catch(() => {});
+      await get().touchStreak();
+      return { gained };
+    } else {
+      const updatedTask = { ...t, done: false, completedAt: undefined };
+      set({ tasks: get().tasks.map((x) => (x.id === id ? updatedTask : x)) });
+      saveTaskServerFn({ data: updatedTask }).catch(() => {});
+    }
+  },
+
+  removeTask: async (id) => {
+    set({ tasks: get().tasks.filter((t) => t.id !== id) });
+    await removeTaskServerFn({ data: id }).catch(() => {});
+  },
+
+  awardFocusXp: async (minutes) => {
+    const s = get();
+    let gained = minutes * 4;
+    if (s.activePet === "buddy" || s.activePet === "mimi")
+      gained = Math.round(gained * 1.1);
+    if (isBoostActive(s.activeBoost) && s.activeBoost!.kind === "xp2x")
+      gained *= 2;
+
+    const newXp = s.xp + gained;
+    const level = xpToLevel(newXp);
+    const totalFocusedMin = s.totalFocusedMin + minutes;
+
+    set({ xp: newXp, level, totalFocusedMin });
+
+    await updateProgressServerFn({
+      data: { xp: newXp, level, totalFocusedMin },
+    }).catch(() => {});
+    await saveFocusSessionServerFn({
+      data: {
+        minutes,
+        xpAwarded: gained,
+        startedAt: Date.now() - minutes * 60000,
+        endedAt: Date.now(),
       },
+    }).catch(() => {});
+    await get().touchStreak();
+  },
 
-      toggleTask: (id) => {
-        const t = get().tasks.find((t) => t.id === id);
-        if (!t) return;
-        if (!t.done) {
-          let gained = DIFFICULTY_XP[t.difficulty];
-          const s = get();
-          if (s.activePet === "hopper") gained = Math.round(gained * 1.1);
-          if (isBoostActive(s.activeBoost) && s.activeBoost!.kind === "xp2x")
-            gained *= 2;
-          const newXp = s.xp + gained;
-          set({
-            tasks: s.tasks.map((x) => (x.id === id ? { ...x, done: true } : x)),
-            xp: newXp,
-            level: xpToLevel(newXp),
-            tasksCompleted: s.tasksCompleted + 1,
-          });
-          get().touchStreak();
-          return { gained };
-        } else {
-          set({
-            tasks: get().tasks.map((x) =>
-              x.id === id ? { ...x, done: false } : x,
-            ),
-          });
+  buyAndPlant: async (plotId, seedId) => {
+    const seed = seedById(seedId);
+    const plot = get().plots.find((p) => p.id === plotId);
+    if (!seed || !plot || !plot.unlocked || plot.seedId) return false;
+    if (get().xp < seed.cost) return false;
+
+    const xp = get().xp - seed.cost;
+    const updatedPlot = { ...plot, seedId: seed.id, plantedAt: Date.now() };
+
+    set({
+      xp,
+      plots: get().plots.map((p) => (p.id === plotId ? updatedPlot : p)),
+    });
+
+    await updateProgressServerFn({ data: { xp } }).catch(() => {});
+    await updatePlotServerFn({ data: updatedPlot }).catch(() => {});
+    return true;
+  },
+
+  harvest: async (plotId) => {
+    const plot = get().plots.find((p) => p.id === plotId);
+    if (!plot || !plot.seedId || !plot.plantedAt) return 0;
+
+    const seed = seedById(plot.seedId);
+    if (!seed) return 0;
+
+    const grow = get().effectiveGrowMs(seed.growMs);
+    if (Date.now() - plot.plantedAt < grow) return 0;
+
+    const reward = get().effectiveReward(seed.reward);
+    const coins = get().coins + reward;
+    const harvested = get().harvested + 1;
+    const updatedPlot = { ...plot, seedId: null, plantedAt: null };
+
+    set({
+      coins,
+      harvested,
+      plots: get().plots.map((p) => (p.id === plotId ? updatedPlot : p)),
+    });
+
+    await updateProgressServerFn({ data: { coins, harvested } }).catch(
+      () => {},
+    );
+    await updatePlotServerFn({ data: updatedPlot }).catch(() => {});
+    return reward;
+  },
+
+  autoHarvestRipe: async () => {
+    const s = get();
+    if (s.activePet !== "cluck") return 0;
+
+    let total = 0;
+    let count = 0;
+    const now = Date.now();
+    const plotsToUpdate: Plot[] = [];
+
+    const newPlots = s.plots.map((p) => {
+      if (p.seedId && p.plantedAt) {
+        const seed = seedById(p.seedId);
+        if (seed && now - p.plantedAt >= s.effectiveGrowMs(seed.growMs)) {
+          total += s.effectiveReward(seed.reward);
+          count += 1;
+          const updated = { ...p, seedId: null, plantedAt: null };
+          plotsToUpdate.push(updated);
+          return updated;
         }
-      },
+      }
+      return p;
+    });
 
-      removeTask: (id) =>
-        set({ tasks: get().tasks.filter((t) => t.id !== id) }),
+    if (count > 0) {
+      const coins = s.coins + total;
+      const harvested = s.harvested + count;
+      set({ plots: newPlots, coins, harvested });
 
-      awardFocusXp: (minutes) => {
-        const s = get();
-        let gained = minutes * 4;
-        if (s.activePet === "buddy" || s.activePet === "mimi")
-          gained = Math.round(gained * 1.1);
-        if (isBoostActive(s.activeBoost) && s.activeBoost!.kind === "xp2x")
-          gained *= 2;
-        const newXp = s.xp + gained;
-        set({
-          xp: newXp,
-          level: xpToLevel(newXp),
-          totalFocusedMin: s.totalFocusedMin + minutes,
-        });
-        get().touchStreak();
-      },
+      updateProgressServerFn({ data: { coins, harvested } }).catch(() => {});
+      plotsToUpdate.forEach((p) =>
+        updatePlotServerFn({ data: p }).catch(() => {}),
+      );
+    }
+    return total;
+  },
 
-      buyAndPlant: (plotId, seedId) => {
-        const seed = seedById(seedId);
-        const plot = get().plots.find((p) => p.id === plotId);
-        if (!seed || !plot || !plot.unlocked || plot.seedId) return false;
-        if (get().xp < seed.cost) return false;
-        set({
-          xp: get().xp - seed.cost,
-          plots: get().plots.map((p) =>
-            p.id === plotId
-              ? { ...p, seedId: seed.id, plantedAt: Date.now() }
-              : p,
-          ),
-        });
-        return true;
-      },
+  unlockPlot: async (plotId) => {
+    const plot = get().plots.find((p) => p.id === plotId);
+    if (!plot || plot.unlocked) return false;
+    if (get().coins < plot.unlockCost) return false;
 
-      harvest: (plotId) => {
-        const plot = get().plots.find((p) => p.id === plotId);
-        if (!plot || !plot.seedId || !plot.plantedAt) return 0;
-        const seed = seedById(plot.seedId);
-        if (!seed) return 0;
-        const grow = get().effectiveGrowMs(seed.growMs);
-        if (Date.now() - plot.plantedAt < grow) return 0;
-        const reward = get().effectiveReward(seed.reward);
-        set({
-          coins: get().coins + reward,
-          harvested: get().harvested + 1,
-          plots: get().plots.map((p) =>
-            p.id === plotId ? { ...p, seedId: null, plantedAt: null } : p,
-          ),
-        });
-        return reward;
-      },
+    const coins = get().coins - plot.unlockCost;
+    const updatedPlot = { ...plot, unlocked: true };
 
-      autoHarvestRipe: () => {
-        const s = get();
-        if (s.activePet !== "cluck") return 0;
-        let total = 0;
-        let count = 0;
-        const now = Date.now();
-        const newPlots = s.plots.map((p) => {
-          if (p.seedId && p.plantedAt) {
-            const seed = seedById(p.seedId);
-            if (seed && now - p.plantedAt >= s.effectiveGrowMs(seed.growMs)) {
-              total += s.effectiveReward(seed.reward);
-              count += 1;
-              return { ...p, seedId: null, plantedAt: null };
-            }
-          }
-          return p;
-        });
-        if (count > 0) {
-          set({
-            plots: newPlots,
-            coins: s.coins + total,
-            harvested: s.harvested + count,
-          });
+    set({
+      coins,
+      plots: get().plots.map((p) => (p.id === plotId ? updatedPlot : p)),
+    });
+
+    await updateProgressServerFn({ data: { coins } }).catch(() => {});
+    await updatePlotServerFn({ data: updatedPlot }).catch(() => {});
+    return true;
+  },
+
+  buyBooster: async (id) => {
+    const b = BOOSTERS.find((x) => x.id === id);
+    if (!b) return false;
+
+    const s = get();
+    if (s.coins < b.cost) return false;
+
+    if (b.kind === "fertilizer") {
+      const growing = s.plots.find((p) => p.seedId && p.plantedAt);
+      if (!growing) return false;
+
+      set({ coins: s.coins - b.cost });
+      await updateProgressServerFn({ data: { coins: s.coins - b.cost } }).catch(
+        () => {},
+      );
+      await get().useFertilizer();
+      return true;
+    }
+
+    if (b.kind === "xp2x") {
+      const coins = s.coins - b.cost;
+      const activeBoost: ActiveBoost = {
+        kind: "xp2x",
+        until: Date.now() + (b.durationMs ?? 0),
+      };
+      set({ coins, activeBoost });
+      await updateProgressServerFn({ data: { coins, activeBoost } }).catch(
+        () => {},
+      );
+      return true;
+    }
+
+    if (b.kind === "freeze") {
+      const coins = s.coins - b.cost;
+      const freezeAvailable = s.freezeAvailable + 1;
+      set({ coins, freezeAvailable });
+      await updateProgressServerFn({ data: { coins, freezeAvailable } }).catch(
+        () => {},
+      );
+      return true;
+    }
+    return false;
+  },
+
+  useFertilizer: async () => {
+    const s = get();
+    let target: Plot | null = null;
+    let maxRem = -1;
+
+    for (const p of s.plots) {
+      if (p.seedId && p.plantedAt) {
+        const seed = seedById(p.seedId);
+        if (!seed) continue;
+        const rem = seed.growMs - (Date.now() - p.plantedAt);
+        if (rem > maxRem) {
+          maxRem = rem;
+          target = p;
         }
-        return total;
-      },
+      }
+    }
+    if (!target) return false;
 
-      unlockPlot: (plotId) => {
-        const plot = get().plots.find((p) => p.id === plotId);
-        if (!plot || plot.unlocked) return false;
-        if (get().coins < plot.unlockCost) return false;
-        set({
-          coins: get().coins - plot.unlockCost,
-          plots: get().plots.map((p) =>
-            p.id === plotId ? { ...p, unlocked: true } : p,
-          ),
-        });
-        return true;
-      },
+    const updatedPlot = { ...target, plantedAt: Date.now() - 10 ** 9 };
+    set({
+      plots: s.plots.map((p) => (p.id === target!.id ? updatedPlot : p)),
+    });
 
-      buyBooster: (id) => {
-        const b = BOOSTERS.find((x) => x.id === id);
-        if (!b) return false;
-        const s = get();
-        if (s.coins < b.cost) return false;
-        if (b.kind === "fertilizer") {
-          // Need at least one growing plot
-          const growing = s.plots.find((p) => p.seedId && p.plantedAt);
-          if (!growing) return false;
-          set({ coins: s.coins - b.cost });
-          get().useFertilizer();
-          return true;
-        }
-        if (b.kind === "xp2x") {
-          set({
-            coins: s.coins - b.cost,
-            activeBoost: {
-              kind: "xp2x",
-              until: Date.now() + (b.durationMs ?? 0),
-            },
-          });
-          return true;
-        }
-        if (b.kind === "freeze") {
-          set({
-            coins: s.coins - b.cost,
-            freezeAvailable: s.freezeAvailable + 1,
-          });
-          return true;
-        }
-        return false;
-      },
+    await updatePlotServerFn({ data: updatedPlot }).catch(() => {});
+    return true;
+  },
 
-      useFertilizer: () => {
-        const s = get();
-        // pick the plot furthest from ripening (the one needing most help)
-        let target: Plot | null = null;
-        let maxRem = -1;
-        for (const p of s.plots) {
-          if (p.seedId && p.plantedAt) {
-            const seed = seedById(p.seedId);
-            if (!seed) continue;
-            const rem = seed.growMs - (Date.now() - p.plantedAt);
-            if (rem > maxRem) {
-              maxRem = rem;
-              target = p;
-            }
-          }
-        }
-        if (!target) return false;
-        set({
-          plots: s.plots.map((p) =>
-            p.id === target!.id ? { ...p, plantedAt: Date.now() - 10 ** 9 } : p,
-          ),
-        });
-        return true;
-      },
+  buyPet: async (id) => {
+    const pet = PETS.find((p) => p.id === id);
+    const s = get();
+    if (!pet || s.ownedPets.includes(id) || s.coins < pet.cost) return false;
 
-      buyPet: (id) => {
-        const pet = PETS.find((p) => p.id === id);
-        const s = get();
-        if (!pet || s.ownedPets.includes(id) || s.coins < pet.cost)
-          return false;
-        set({
-          coins: s.coins - pet.cost,
-          ownedPets: [...s.ownedPets, id],
-          activePet: s.activePet ?? id,
-        });
-        return true;
-      },
+    const coins = s.coins - pet.cost;
+    const activePet = s.activePet ?? id;
+    const ownedPets = [...s.ownedPets, id];
 
-      setActivePet: (id) => set({ activePet: id }),
+    set({ coins, ownedPets, activePet });
 
-      buyDecor: (id) => {
-        const d = DECOR.find((x) => x.id === id);
-        const s = get();
-        if (!d || s.ownedDecor.includes(id) || s.coins < d.cost) return false;
-        set({ coins: s.coins - d.cost, ownedDecor: [...s.ownedDecor, id] });
-        return true;
-      },
+    await updateProgressServerFn({ data: { coins, activePet } }).catch(
+      () => {},
+    );
+    await addInventoryServerFn({ data: { kind: "pet", itemId: id } }).catch(
+      () => {},
+    );
+    return true;
+  },
 
-      buyTool: (id) => {
-        const t = TOOLS.find((x) => x.id === id);
-        const s = get();
-        if (!t || s.ownedTools.includes(id) || s.coins < t.cost) return false;
-        set({ coins: s.coins - t.cost, ownedTools: [...s.ownedTools, id] });
-        return true;
-      },
+  setActivePet: async (id) => {
+    set({ activePet: id });
+    await updateProgressServerFn({ data: { activePet: id } }).catch(() => {});
+  },
 
-      effectiveGrowMs: (baseMs) => {
-        let reduce = 0;
-        for (const id of get().ownedTools) {
-          const t = TOOLS.find((x) => x.id === id);
-          if (t?.growthReduce) reduce += t.growthReduce;
-        }
-        reduce = Math.min(0.75, reduce);
-        return Math.round(baseMs * (1 - reduce));
-      },
+  buyDecor: async (id) => {
+    const d = DECOR.find((x) => x.id === id);
+    const s = get();
+    if (!d || s.ownedDecor.includes(id) || s.coins < d.cost) return false;
 
-      effectiveReward: (baseReward) => {
-        let bonus = 0;
-        for (const id of get().ownedTools) {
-          const t = TOOLS.find((x) => x.id === id);
-          if (t?.rewardBonus) bonus += t.rewardBonus;
-        }
-        return Math.round(baseReward * (1 + bonus));
-      },
+    const coins = s.coins - d.cost;
+    const ownedDecor = [...s.ownedDecor, id];
 
-      touchStreak: () => {
-        const s = get();
-        const t = today();
-        if (s.lastActiveDay === t) return;
-        if (!s.lastActiveDay) {
-          set({ streak: 1, lastActiveDay: t });
-          return;
-        }
-        const prev = new Date(s.lastActiveDay);
-        const cur = new Date(t);
-        const diff = Math.round((cur.getTime() - prev.getTime()) / 86400000);
-        if (diff === 1) set({ streak: s.streak + 1, lastActiveDay: t });
-        else if (diff > 1 && s.freezeAvailable > 0) {
-          set({ lastActiveDay: t, freezeAvailable: s.freezeAvailable - 1 });
-        } else set({ streak: 1, lastActiveDay: t });
-      },
-    }),
-    { name: "treedo-v2" },
-  ),
-);
+    set({ coins, ownedDecor });
+
+    await updateProgressServerFn({ data: { coins } }).catch(() => {});
+    await addInventoryServerFn({ data: { kind: "decor", itemId: id } }).catch(
+      () => {},
+    );
+    return true;
+  },
+
+  buyTool: async (id) => {
+    const t = TOOLS.find((x) => x.id === id);
+    const s = get();
+    if (!t || s.ownedTools.includes(id) || s.coins < t.cost) return false;
+
+    const coins = s.coins - t.cost;
+    const ownedTools = [...s.ownedTools, id];
+
+    set({ coins, ownedTools });
+
+    await updateProgressServerFn({ data: { coins } }).catch(() => {});
+    await addInventoryServerFn({ data: { kind: "tool", itemId: id } }).catch(
+      () => {},
+    );
+    return true;
+  },
+
+  effectiveGrowMs: (baseMs) => {
+    let reduce = 0;
+    for (const id of get().ownedTools) {
+      const t = TOOLS.find((x) => x.id === id);
+      if (t?.growthReduce) reduce += t.growthReduce;
+    }
+    reduce = Math.min(0.75, reduce);
+    return Math.round(baseMs * (1 - reduce));
+  },
+
+  effectiveReward: (baseReward) => {
+    let bonus = 0;
+    for (const id of get().ownedTools) {
+      const t = TOOLS.find((x) => x.id === id);
+      if (t?.rewardBonus) bonus += t.rewardBonus;
+    }
+    return Math.round(baseReward * (1 + bonus));
+  },
+
+  touchStreak: async () => {
+    const s = get();
+    const t = today();
+    if (s.lastActiveDay === t) return;
+
+    let streak = s.streak;
+    let lastActiveDay = s.lastActiveDay;
+    let freezeAvailable = s.freezeAvailable;
+
+    if (!lastActiveDay) {
+      streak = 1;
+      lastActiveDay = t;
+    } else {
+      const prev = new Date(lastActiveDay);
+      const cur = new Date(t);
+      const diff = Math.round((cur.getTime() - prev.getTime()) / 86400000);
+      if (diff === 1) {
+        streak += 1;
+        lastActiveDay = t;
+      } else if (diff > 1 && freezeAvailable > 0) {
+        lastActiveDay = t;
+        freezeAvailable -= 1;
+      } else {
+        streak = 1;
+        lastActiveDay = t;
+      }
+    }
+
+    set({ streak, lastActiveDay, freezeAvailable });
+    await updateProgressServerFn({
+      data: { streak, lastActiveDay, freezeAvailable },
+    }).catch(() => {});
+  },
+}));
 
 export { SEEDS, BOOSTERS, PETS, DECOR, TOOLS };

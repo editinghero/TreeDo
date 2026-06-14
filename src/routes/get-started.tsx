@@ -13,7 +13,7 @@ export const Route = createFileRoute("/get-started")({
       { title: "Get started — TreeDo" },
       {
         name: "description",
-        content: "Create your tiny garden. Stored only on your device.",
+        content: "Create your tiny garden. Stored securely in the cloud.",
       },
       { property: "og:title", content: "Get started with TreeDo" },
       {
@@ -41,19 +41,27 @@ function GetStartedPage() {
     if (user) navigate({ to: "/app" });
   }, [user, navigate]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
-    const res =
-      mode === "login" ? login(email, pass) : signup(name, email, pass);
-    if (!res.ok) {
-      setErr(res.error || "Something went wrong");
+    try {
+      const res =
+        mode === "login"
+          ? await login(email, pass)
+          : await signup(name, email, pass);
+      if (!res.ok) {
+        setErr(res.error || "Something went wrong");
+        sfx.soft();
+        return;
+      }
+      sfx.success();
+      toast.success(mode === "login" ? "Welcome back!" : "Garden created!");
+      setTimeout(() => navigate({ to: "/app" }), 250);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setErr(msg);
       sfx.soft();
-      return;
     }
-    sfx.success();
-    toast.success(mode === "login" ? "Welcome back!" : "Garden created!");
-    setTimeout(() => navigate({ to: "/app" }), 250);
   };
 
   return (
@@ -115,7 +123,7 @@ function GetStartedPage() {
           </div>
 
           <p className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-muted-foreground">
-            <Sparkles className="h-3 w-3" /> stored only on this device
+            <Sparkles className="h-3 w-3" /> stored securely in the cloud
           </p>
 
           <form onSubmit={submit} className="mt-4 space-y-2.5">

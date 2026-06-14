@@ -49,13 +49,16 @@ Live - https://treedo.pages.dev
 TreeDo is a PWA — install it on any device for a native-like experience.
 
 **On Desktop (Chrome / Edge / Brave):**
+
 - Click the install icon in the address bar
 - Or click Install in the browser menu
 
 **On Mobile (Android):**
+
 - Tap "Add to Home Screen" in the browser menu
 
 **On iOS (Safari):**
+
 - Tap the Share button, then "Add to Home Screen"
 
 ## Security & Privacy
@@ -74,12 +77,15 @@ TreeDo is a PWA — install it on any device for a native-like experience.
 ## Need Help?
 
 **Lost progress?**
+
 - Make sure you're logged in with the same account
 
 **Timer not starting?**
+
 - Check that notifications are allowed (required for focus timer alerts)
 
 **Farm not growing?**
+
 - Crops take real time — check back later!
 
 ---
@@ -106,11 +112,13 @@ npm run dev
 ### Database Setup
 
 1. Create the D1 database:
+
 ```bash
 npx wrangler d1 create treedo
 ```
 
 2. Update `wrangler.jsonc` with the returned database ID:
+
 ```toml
 [d1_databases]
 binding = "DB"
@@ -120,6 +128,7 @@ migrations_dir = "db/migrations"
 ```
 
 3. Push schema and seed:
+
 ```bash
 npx wrangler d1 migrations apply treedo --remote
 npx wrangler d1 execute treedo --remote --file db/seed.sql
@@ -128,11 +137,13 @@ npx wrangler d1 execute treedo --remote --file db/seed.sql
 ### Deploy to Cloudflare
 
 **Via GitHub (CI/CD):**
+
 1. Fork the repo
 2. Set `CLOUDFLARE_API_TOKEN` as a repository secret
 3. Push to the main branch
 
 **Direct Deploy:**
+
 ```bash
 npm run build
 npx wrangler deploy

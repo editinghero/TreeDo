@@ -29,8 +29,8 @@ export function Farm() {
 
   useEffect(() => {
     if (activePet !== "cluck") return;
-    const id = setInterval(() => {
-      const reward = autoHarvestRipe();
+    const id = setInterval(async () => {
+      const reward = await autoHarvestRipe();
       if (reward > 0) toast.success(`Cluck collected +${reward} coins`);
     }, 4000);
     return () => clearInterval(id);
@@ -38,11 +38,11 @@ export function Farm() {
 
   const decorItems = DECOR.filter((d) => ownedDecor.includes(d.id));
 
-  const handleHarvest = (
+  const handleHarvest = async (
     plotId: number,
     e: React.MouseEvent<HTMLButtonElement>,
   ) => {
-    const reward = harvest(plotId);
+    const reward = await harvest(plotId);
     if (reward > 0) {
       const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
       celebrate({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
@@ -53,14 +53,14 @@ export function Farm() {
     }
   };
 
-  const handleUnlock = (plotId: number, cost: number) => {
+  const handleUnlock = async (plotId: number, cost: number) => {
     if (coins < cost) {
       toast.error("Not enough coins", {
         description: `Need ${cost - coins} more`,
       });
       return;
     }
-    if (unlockPlot(plotId)) {
+    if (await unlockPlot(plotId)) {
       toast.success("New plot unlocked!", {
         description: "More room to grow.",
       });

@@ -65,11 +65,13 @@ export function Marketplace({ onPlanted }: { onPlanted?: () => void }) {
           return (
             <motion.button
               key={s.id}
-              whileHover={{ y: -4, rotate: 0 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={afford ? { y: -4, rotate: 0 } : {}}
+              whileTap={afford ? { scale: 0.96 } : {}}
               onClick={() => plantNext(s.id)}
               className={`group relative overflow-hidden rounded-2xl border-2 border-foreground/15 bg-card p-3 text-left toy-shadow transition ${tilt} ${
-                afford ? "" : "opacity-60"
+                afford
+                  ? ""
+                  : "opacity-40 filter grayscale-[100%] contrast-[90%] brightness-[90%]"
               }`}
               style={{
                 background: `linear-gradient(180deg, color-mix(in oklab, ${cropColor(s.id)} 18%, var(--card)), var(--card))`,

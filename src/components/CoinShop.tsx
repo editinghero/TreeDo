@@ -47,19 +47,36 @@ export function CoinShop() {
   } = useFarm();
   const [cat, setCat] = useState<Cat>("tools");
 
-  const announce = (
+  const announce = async (
     label: string,
-    ok: boolean,
+    okPromise: Promise<boolean>,
     cost: number,
     e?: React.MouseEvent,
   ) => {
-    if (!ok) {
+    // Check if the user does not have enough coins first
+    if (coins < cost) {
       sfx.soft();
       toast.error("Need more coins", {
         description: `${cost} coins required.`,
       });
       return;
     }
+
+    const ok = await okPromise;
+    if (!ok) {
+      sfx.soft();
+      // Since they have enough coins, failure is due to other conditions
+      let failureReason = "Purchase conditions not met.";
+      if (label.toLowerCase().includes("fertilizer")) {
+        failureReason =
+          "You need at least one growing crop to use a fertilizer.";
+      }
+      toast.error("Could not purchase", {
+        description: failureReason,
+      });
+      return;
+    }
+
     if (e) {
       const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
       celebrate({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
@@ -166,7 +183,7 @@ export function CoinShop() {
                       owned
                         ? "opacity-90"
                         : !afford
-                          ? "opacity-55 grayscale-[30%]"
+                          ? "opacity-40 filter grayscale-[100%] contrast-[80%] brightness-[90%]"
                           : ""
                     }`}
                     style={{
@@ -226,7 +243,9 @@ export function CoinShop() {
                         announce(b.name, buyBooster(b.id), b.cost, e)
                       }
                       className={`flex w-full items-center gap-3 rounded-2xl border-2 border-foreground/10 bg-background/60 p-3 text-left toy-shadow transition ${
-                        afford ? "" : "opacity-55 grayscale-[30%]"
+                        afford
+                          ? ""
+                          : "opacity-40 filter grayscale-[100%] cursor-not-allowed"
                       }`}
                     >
                       <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-sun text-foreground">
@@ -264,7 +283,7 @@ export function CoinShop() {
                       active
                         ? "border-primary bg-gradient-sun/30"
                         : "border-foreground/10 bg-background/60"
-                    } ${!owned && !afford ? "opacity-55 grayscale-[30%]" : ""}`}
+                    } ${!owned && !afford ? "opacity-40 filter grayscale-[100%]" : ""}`}
                   >
                     <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-card border-2 border-foreground/10">
                       <PetIcon id={p.id} className="h-8 w-8" />
@@ -326,7 +345,7 @@ export function CoinShop() {
                       owned
                         ? "border-leaf bg-leaf/20"
                         : "border-foreground/10 bg-background/60"
-                    } ${!owned && !afford ? "opacity-55 grayscale-[30%]" : ""}`}
+                    } ${!owned && !afford ? "opacity-40 filter grayscale-[100%]" : ""}`}
                   >
                     <div className="grid h-10 place-items-center">
                       <DecorIcon id={d.id} className="h-7 w-7" />

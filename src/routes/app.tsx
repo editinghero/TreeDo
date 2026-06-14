@@ -42,6 +42,7 @@ function AppPage() {
 
   useEffect(() => {
     hydrate();
+    import("@/lib/store").then((m) => m.useFarm.getState().hydrate());
   }, [hydrate]);
   useEffect(() => {
     const t = setTimeout(() => {
@@ -144,7 +145,7 @@ function AppPage() {
       </main>
 
       <footer className="mt-10 inline-flex w-full items-center justify-center gap-1.5 text-center text-xs font-bold text-muted-foreground">
-        <Sprout className="h-3.5 w-3.5" /> saved on this device · {user.name}
+        <Sprout className="h-3.5 w-3.5" /> saved to the cloud · {user.name}
       </footer>
 
       {/* iOS-style bottom tab bar (mobile + tablet) */}

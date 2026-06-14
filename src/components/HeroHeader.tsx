@@ -115,10 +115,10 @@ export function HeroHeader() {
     haptics.tap();
     if (next) sfx.click();
   };
-  const handleLogout = () => {
+  const handleLogout = async () => {
     sfx.soft();
     haptics.soft();
-    logout();
+    await logout();
     navigate({ to: "/" });
   };
   const toggleCollapse = () => {

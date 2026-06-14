@@ -1,75 +1,74 @@
-// Tiny localStorage-only auth. No real security — local profile only.
 import { create } from "zustand";
+import {
+  signupServerFn,
+  loginServerFn,
+  logoutServerFn,
+  getUserServerFn,
+} from "../server/auth";
 
-const KEY = "treedo-auth";
-const USERS_KEY = "treedo-users";
-
-export type AuthUser = { name: string; email: string };
-
-type Stored = { users: Record<string, { name: string; pass: string }> };
-
-function readUsers(): Stored {
-  if (typeof window === "undefined") return { users: {} };
-  try {
-    return JSON.parse(localStorage.getItem(USERS_KEY) || '{"users":{}}');
-  } catch {
-    return { users: {} };
-  }
-}
-function writeUsers(s: Stored) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(s));
-}
-
-function readCurrent(): AuthUser | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "null");
-  } catch {
-    return null;
-  }
-}
+export type AuthUser = { name: string; email: string; id: string };
 
 type AuthStore = {
   user: AuthUser | null;
-  hydrate: () => void;
+  hydrate: () => Promise<void>;
   signup: (
     name: string,
     email: string,
     pass: string,
-  ) => { ok: boolean; error?: string };
-  login: (email: string, pass: string) => { ok: boolean; error?: string };
-  logout: () => void;
+  ) => Promise<{ ok: boolean; error?: string }>;
+  login: (
+    email: string,
+    pass: string,
+  ) => Promise<{ ok: boolean; error?: string }>;
+  logout: () => Promise<void>;
 };
 
 export const useAuth = create<AuthStore>((set) => ({
   user: null,
-  hydrate: () => set({ user: readCurrent() }),
-  signup: (name, email, pass) => {
-    email = email.trim().toLowerCase();
-    if (!name.trim() || !email || pass.length < 4)
-      return { ok: false, error: "Fill all fields (password 4+)" };
-    const s = readUsers();
-    if (s.users[email]) return { ok: false, error: "Email already registered" };
-    s.users[email] = { name: name.trim(), pass };
-    writeUsers(s);
-    const user = { name: name.trim(), email };
-    localStorage.setItem(KEY, JSON.stringify(user));
-    set({ user });
-    return { ok: true };
+  hydrate: async () => {
+    try {
+      const res = await getUserServerFn();
+      if (res.user) {
+        set({ user: res.user as AuthUser });
+      } else {
+        set({ user: null });
+      }
+    } catch (e) {
+      console.error("Failed to hydrate user", e);
+      set({ user: null });
+    }
   },
-  login: (email, pass) => {
-    email = email.trim().toLowerCase();
-    const s = readUsers();
-    const u = s.users[email];
-    if (!u || u.pass !== pass)
-      return { ok: false, error: "Invalid email or password" };
-    const user = { name: u.name, email };
-    localStorage.setItem(KEY, JSON.stringify(user));
-    set({ user });
-    return { ok: true };
+  signup: async (name, email, pass) => {
+    try {
+      const res = await signupServerFn({ data: { name, email, pass } });
+      if (res.ok && res.user) {
+        set({ user: res.user as AuthUser });
+        return { ok: true };
+      }
+      return { ok: false, error: res.error };
+    } catch (e: unknown) {
+      const errorMsg = e instanceof Error ? e.message : "Signup failed";
+      return { ok: false, error: errorMsg };
+    }
   },
-  logout: () => {
-    localStorage.removeItem(KEY);
-    set({ user: null });
+  login: async (email, pass) => {
+    try {
+      const res = await loginServerFn({ data: { email, pass } });
+      if (res.ok && res.user) {
+        set({ user: res.user as AuthUser });
+        return { ok: true };
+      }
+      return { ok: false, error: res.error };
+    } catch (e: unknown) {
+      const errorMsg = e instanceof Error ? e.message : "Login failed";
+      return { ok: false, error: errorMsg };
+    }
+  },
+  logout: async () => {
+    try {
+      await logoutServerFn();
+    } finally {
+      set({ user: null });
+    }
   },
 }));

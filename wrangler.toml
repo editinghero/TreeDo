@@ -1,0 +1,10 @@
+name = "tanstack-start-app"
+compatibility_date = "2025-09-24"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist/client"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "treedo"
+database_id = "aa800f81-1fff-4767-a9ac-402ce1f09e18"
+migrations_dir = "db/migrations"
