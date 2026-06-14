@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getBindings } from "../lib/db";
-import { getCookie, deleteCookie } from "vinxi/http";
+import { getCookie, deleteCookie } from "@tanstack/react-start/server";
 
 interface SessionRow {
   user_id: string;

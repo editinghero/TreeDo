@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getBindings } from "../lib/db";
-import { setCookie, getCookie, deleteCookie } from "vinxi/http";
+import { setCookie, getCookie, deleteCookie } from "@tanstack/react-start/server";
 
 // Minimal hash function for demo purposes. In production, use bcrypt or WebCrypto
 async function hashPassword(password: string) {
@@ -147,10 +147,10 @@ export const logoutServerFn = createServerFn({ method: "POST" }).handler(
           .bind(token)
           .run();
       }
+      deleteCookie("session");
     } catch (e) {
       console.error("[logout] Error:", e);
     }
-    deleteCookie("session");
     return { ok: true };
   },
 );
