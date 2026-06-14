@@ -31,4 +31,12 @@ if (fs.existsSync(srcServer)) {
   console.log("✓ Copied server.js as _worker.js");
 }
 
+// Remove the auto-generated wrangler.json — it contains Worker-only fields
+// that Cloudflare Pages rejects during deployment
+const generatedConfig = path.resolve("dist/client/wrangler.json");
+if (fs.existsSync(generatedConfig)) {
+  fs.unlinkSync(generatedConfig);
+  console.log("✓ Removed auto-generated wrangler.json (incompatible with Pages)");
+}
+
 console.log("✓ Cloudflare Pages build completed!");
