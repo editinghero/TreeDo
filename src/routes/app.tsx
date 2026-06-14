@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { HeroHeader } from "@/components/HeroHeader";
@@ -11,7 +11,6 @@ import { WeeklyPlanner } from "@/components/WeeklyPlanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { TAB_ICONS } from "@/components/icons";
 import { Sprout } from "lucide-react";
-import { useAuth } from "@/lib/auth";
 import { sfx } from "@/lib/sfx";
 import { haptics } from "@/lib/haptics";
 
@@ -37,21 +36,10 @@ type TabId = (typeof TABS)[number]["id"];
 
 function AppPage() {
   const [tab, setTab] = useState<TabId>("do");
-  const { user, hydrate } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    hydrate();
-    import("@/lib/store").then((m) => m.useFarm.getState().hydrate());
-  }, [hydrate]);
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (!useAuth.getState().user) navigate({ to: "/" });
-    }, 50);
-    return () => clearTimeout(t);
-  }, [navigate]);
-
-  if (!user) return null;
+    import("@/lib/store");
+  }, []);
 
   return (
     <div className="mx-auto min-h-[100dvh] w-full max-w-screen-2xl px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+92px)] sm:px-6 sm:py-10 lg:pb-10">
@@ -145,7 +133,7 @@ function AppPage() {
       </main>
 
       <footer className="mt-10 inline-flex w-full items-center justify-center gap-1.5 text-center text-xs font-bold text-muted-foreground">
-        <Sprout className="h-3.5 w-3.5" /> saved to the cloud · {user.name}
+        <Sprout className="h-3.5 w-3.5" /> saved on your device
       </footer>
 
       {/* iOS-style bottom tab bar (mobile + tablet) */}

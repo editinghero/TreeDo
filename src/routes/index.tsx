@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
@@ -26,7 +26,6 @@ import {
   MousePointer2,
   Gamepad2,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth";
 import { sfx } from "@/lib/sfx";
 import { Toaster } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -56,15 +55,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const { user, hydrate } = useAuth();
-  const navigate = useNavigate();
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
-  useEffect(() => {
-    if (user) navigate({ to: "/app" });
-  }, [user, navigate]);
-
   const heroRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!heroRef.current) return;
@@ -168,11 +158,11 @@ function Landing() {
           <span className="font-handwriting text-2xl font-bold">TreeDo</span>
         </div>
         <Link
-          to="/get-started"
+          to="/app"
           onClick={() => sfx.click()}
           className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1.5 text-xs font-bold text-background toy-shadow"
         >
-          Get started <ArrowRight className="h-3.5 w-3.5" />
+          Open app <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </header>
 
@@ -219,11 +209,11 @@ function Landing() {
 
             <div className="mt-4 flex flex-col items-center gap-2 sm:mt-7 sm:flex-row sm:gap-3 lg:items-start">
               <Link
-                to="/get-started"
+                to="/app"
                 onClick={() => sfx.click()}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3.5 font-display text-base font-bold text-primary-foreground toy-shadow active:translate-y-1 active:shadow-none sm:w-auto"
               >
-                Get started — free <ArrowRight className="h-4 w-4" />
+                Open app — free <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#how"
@@ -534,11 +524,11 @@ function Landing() {
               25-minute focus.
             </p>
             <Link
-              to="/get-started"
+              to="/app"
               onClick={() => sfx.click()}
               className="relative mt-5 inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 font-display text-base font-bold text-primary-foreground toy-shadow hover:brightness-105 active:translate-y-1 active:shadow-none"
             >
-              Create my garden <ArrowRight className="h-4 w-4" />
+              Open app <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>

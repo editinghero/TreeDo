@@ -7,7 +7,6 @@ import {
   Sprout,
   CheckCircle2,
   Timer,
-  LogOut,
   Volume2,
   VolumeX,
   ChevronUp,
@@ -16,9 +15,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { PetIcon } from "./icons";
-import { useAuth } from "@/lib/auth";
 import { isSfxEnabled, setSfxEnabled, sfx } from "@/lib/sfx";
-import { useNavigate } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 import { haptics } from "@/lib/haptics";
 
@@ -36,8 +33,6 @@ export function HeroHeader() {
     activePet,
     activeBoost,
   } = useFarm();
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [, force] = useState(0);
   const [sound, setSound] = useState(true);
   const [collapsed, setCollapsed] = useState<boolean | null>(null);
@@ -115,12 +110,6 @@ export function HeroHeader() {
     haptics.tap();
     if (next) sfx.click();
   };
-  const handleLogout = async () => {
-    sfx.soft();
-    haptics.soft();
-    await logout();
-    navigate({ to: "/" });
-  };
   const toggleCollapse = () => {
     setCollapsed((c) => {
       const next = !c;
@@ -162,7 +151,7 @@ export function HeroHeader() {
           </span>
           <span className="min-w-0 text-left">
             <span className="block truncate font-handwriting text-2xl font-bold leading-none">
-              {user ? `hi, ${user.name.split(" ")[0]}` : "TreeDo"}
+              TreeDo
             </span>
             <span className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Lv {level} · {xp} XP
@@ -186,15 +175,6 @@ export function HeroHeader() {
               <VolumeX className="h-4 w-4" />
             )}
           </button>
-          {user && (
-            <button
-              onClick={handleLogout}
-              aria-label="log out"
-              className="grid h-9 w-9 place-items-center rounded-full border-2 border-foreground/10 bg-secondary text-secondary-foreground toy-shadow active:translate-y-px"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          )}
         </div>
       </div>
 

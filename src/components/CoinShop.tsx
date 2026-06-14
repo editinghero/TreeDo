@@ -47,9 +47,9 @@ export function CoinShop() {
   } = useFarm();
   const [cat, setCat] = useState<Cat>("tools");
 
-  const announce = async (
+  const announce = (
     label: string,
-    okPromise: Promise<boolean>,
+    ok: boolean,
     cost: number,
     e?: React.MouseEvent,
   ) => {
@@ -62,7 +62,6 @@ export function CoinShop() {
       return;
     }
 
-    const ok = await okPromise;
     if (!ok) {
       sfx.soft();
       // Since they have enough coins, failure is due to other conditions
